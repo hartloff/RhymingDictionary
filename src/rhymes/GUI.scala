@@ -7,18 +7,18 @@ import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, Label, ListView, TextField}
 import scalafx.scene.layout.VBox
-import RhymingDictionary.{findRhymes, getSounds}
 
 
 object GUI extends JFXApp {
   val dictionaryFile: String = "data/cmudict-0.7b"
+  val rhymingDictionary: RhymingDictionary = new RhymingDictionary(dictionaryFile)
   val enableLargeFont: Boolean = true
 
   val inputLabel: Label = new Label("Input Word:")
-  val soundsLabel: Label = new Label("Sounds:")
-  val wordsLabel: Label = new Label("Rhymes:")
+  val soundsLabel: Label = new Label("Best Rhyme:")
+  val wordsLabel: Label = new Label("All Rhymes:")
   val inputDisplay: TextField = new TextField
-  val outputSounds: TextField = new TextField { editable = false }
+  val bestRhyme: TextField = new TextField { editable = false }
   val outputWords: ListView[String] = new ListView[String]() {
     minHeight = 400
     maxHeight = Double.MaxValue
@@ -30,16 +30,16 @@ object GUI extends JFXApp {
     text = "Search"
     onAction = (_: ActionEvent) => {
       try {
-        outputSounds.text = getSounds(dictionaryFile, inputDisplay.text.value.toUpperCase).toString.substring(4)
+        bestRhyme.text = rhymingDictionary.bestRhyme(inputDisplay.text.value.toUpperCase)
         outputWords.getItems.clear
-        outputWords.getItems addAll findRhymes(dictionaryFile, inputDisplay.text.value.toUpperCase).asJava
+        outputWords.getItems addAll rhymingDictionary.allRhymes(inputDisplay.text.value.toUpperCase).asJava
       }
       catch {
-        case _: NoSuchElementException => outputSounds.text = "Word \"" + inputDisplay.text.value + "\" not found."
+        case _: NoSuchElementException => bestRhyme.text = "Word \"" + inputDisplay.text.value + "\" not found."
       }
     }
   }
-  val container: VBox = new VBox(inputLabel, inputDisplay, button, soundsLabel, outputSounds, wordsLabel, outputWords)
+  val container: VBox = new VBox(inputLabel, inputDisplay, button, soundsLabel, bestRhyme, wordsLabel, outputWords)
 
   if(enableLargeFont) container.children.asScala.foreach(_.setStyle("-fx-font: 24 Arial;"))
 
